@@ -29,16 +29,11 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 				border-radius: 12px;
 				box-shadow: var(--box-shadow);
 			}
-			.prose {
+			.title {
 				width: 720px;
 				max-width: calc(100% - 2em);
-				margin: auto;
+				margin: 0 auto 1em;
 				padding: 1em;
-				color: rgb(var(--gray-dark));
-			}
-			.title {
-				margin-bottom: 1em;
-				padding: 1em 0;
 				text-align: center;
 				line-height: 1;
 			}
@@ -58,27 +53,25 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 	<body>
 		<Header />
 		<main>
-			<article>
-				<div class="hero-image">
-					{heroImage && <Image width={1020} height={510} src={heroImage} alt="" />}
+			<div class="hero-image">
+				{heroImage && <Image width={1020} height={510} src={heroImage} alt="" />}
+			</div>
+			<header class="title">
+				<div class="date">
+					<FormattedDate date={pubDate} />
+					{
+						updatedDate && (
+							<div class="last-updated-on">
+								Last updated on <FormattedDate date={updatedDate} />
+							</div>
+						)
+					}
 				</div>
-				<div class="prose">
-					<div class="title">
-						<div class="date">
-							<FormattedDate date={pubDate} />
-							{
-								updatedDate && (
-									<div class="last-updated-on">
-										Last updated on <FormattedDate date={updatedDate} />
-									</div>
-								)
-							}
-						</div>
-						<h1>{title}</h1>
-						<hr />
-					</div>
-					<slot />
-				</div>
+				<h1>{title}</h1>
+				<hr />
+			</header>
+			<article class="prose prose-lg dark:prose-invert mx-auto">
+				<slot />
 			</article>
 		</main>
 		<Footer />

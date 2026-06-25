@@ -84,3 +84,56 @@ RNN 按时间步递推：$h_t$ 依赖 $h_{t-1}$，信息逐步传递。
 - **Decoder-only**：因果建模，一个架构统一生成与对话，是当前 LLM 的主流路线
 - **Encoder-Decoder**：输入输出分离，适合明确的 seq2seq 映射
 
+## Part 2：为什么 Decoder-only 成为主流？
+
+Part 1 提到三种架构各有适用场景，但当前 LLM 几乎清一色是 **Decoder-only**（GPT、LLaMA、Qwen、Claude 等）。原因可以归结为：**一个简单目标 + 一种统一接口 + 可预测的规模化路径**。
+
+### 1. 训练目标简单且可扩展
+
+Decoder-only 只做一件事：**因果语言建模**——给定前文，预测下一个 token。
+
+$$
+P(x_t \mid x_1, x_2, \ldots, x_{t-1})
+$$
+
+不需要像 BERT 那样设计 MLM、NSP 等辅助任务，也不需要 Encoder-Decoder 那样维护两套参数和 Cross-Attention。目标单一，实现干净，**更容易把算力和数据砸上去做 scale**。
+
+### 2. 生成是「超集」，理解可以折算成生成
+
+Encoder-only 擅长判别（分类、匹配），但不天然会生成；Encoder-Decoder 擅长 seq2seq，但架构更重。
+
+Decoder-only 反过来：**几乎所有任务都能写成「续写」**——
+
+- 分类 → 生成标签词（`正面` / `负面`）
+- 问答 → 生成答案文本
+- 翻译 → 生成目标语言句子
+- 代码 → 生成补全片段
+
+GPT-3 的 few-shot prompting 证明了：同一个模型、同一种 forward，换 prompt 就能做多种任务，无需为每个任务改结构或加分类头。
+
+### 3. 与互联网语料天然匹配
+
+大规模预训练吃的是海量无标注文本，而网页、书籍、代码本身就是**从左到右的序列**。因果建模直接拟合这种数据分布，不需要构造「被 mask 的句子对」或「平行语料」。
+
+Encoder-Decoder 的翻译/摘要场景需要成对数据；BERT 的 MLM 需要专门的数据处理。Decoder-only 的 CLM **数据门槛最低**，适合暴力 scale。
+
+### 4. Scaling Law 验证的是这条路
+
+GPT-3 之后的研究（Kaplan、Chinchilla 等）表明：在足够大的规模下，**loss 与参数量、数据量、算力呈可预测的幂律关系**。产业界据此持续加码——而这条 scaling 路线走得最顺的，正是 Decoder-only + CLM。
+
+结果是：模型越大，通用能力越强，涌现 in-context learning、chain-of-thought 等现象。**赢家通吃**，其他架构在「通用大模型」赛道上难以抗衡。
+
+### 5. 工程与生态的惯性
+
+推理链路统一（自回归逐 token 生成），训练框架成熟（Megatron、DeepSpeed、vLLM 等），RLHF / DPO 等对齐方法也围绕生成式模型构建。ChatGPT 爆火之后，开源社区（LLaMA、Mistral）和产业界全部押注同一路线，形成**路径依赖**。
+
+### 另外两种架构去哪了？
+
+| 架构 | 现状 |
+|---|---|
+| **Encoder-only** | 仍用于 Embedding（BERT、BGE）、重排序、判别式小模型；通用 LLM 主战场已让位 |
+| **Encoder-Decoder** | T5、BART 在翻译/摘要等任务仍有价值；Flan-T5 等做指令微调，但通用对话 LLM 少见 |
+| **Decoder-only** | 通用 LLM、对话、Agent、代码助手的主流选择 |
+
+不是说 Encoder 或 Encoder-Decoder 没用——检索增强（RAG）里仍需要 Encoder 做向量化，专业翻译也会用 seq2seq。但在「一个模型什么都干」的路线下，**Decoder-only 用统一生成接口 + 规模化，赢下了主赛道**。
+
