@@ -9,68 +9,67 @@ import Header from '../components/Header.astro';
 type Props = CollectionEntry<'blog'>['data'];
 
 const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
+
+const proseClass = [
+	'prose prose-slate max-w-none',
+	'prose-base',
+	'prose-headings:font-semibold prose-headings:tracking-tight prose-headings:text-gray-900',
+	'prose-h2:mt-10 prose-h2:mb-4 prose-h2:text-[1.125rem] prose-h2:font-semibold',
+	'prose-h2:border-l-[3px] prose-h2:border-teal-600 prose-h2:pl-3',
+	'prose-h3:mt-6 prose-h3:mb-2 prose-h3:text-base prose-h3:font-medium prose-h3:text-gray-800',
+	'prose-p:text-[0.9375rem] prose-p:leading-[1.75] prose-p:text-gray-700',
+	'prose-li:text-[0.9375rem] prose-li:text-gray-700',
+	'prose-a:text-teal-600 prose-a:font-medium prose-a:no-underline hover:prose-a:underline',
+	'prose-strong:font-medium prose-strong:text-gray-900',
+	'prose-code:text-teal-800 prose-code:bg-teal-50 prose-code:px-1.5 prose-code:py-0.5',
+	'prose-code:rounded prose-code:text-[0.85em] prose-code:font-normal',
+	'prose-code:before:content-none prose-code:after:content-none',
+	'prose-pre:bg-slate-50 prose-pre:border prose-pre:border-slate-200 prose-pre:text-[0.8125rem]',
+	'prose-blockquote:border-l-teal-500 prose-blockquote:bg-teal-50/40',
+	'prose-blockquote:py-2 prose-blockquote:not-italic prose-blockquote:text-gray-700',
+	'prose-th:bg-slate-50 prose-th:font-medium prose-th:text-gray-800',
+	'prose-td:text-[0.875rem] prose-table:text-sm',
+].join(' ');
 ---
 
 <html lang="zh-CN">
 	<head>
 		<BaseHead title={title} description={description} />
-		<style>
-			main {
-				width: calc(100% - 2em);
-				max-width: 100%;
-				margin: 0;
-			}
-			.hero-image {
-				width: 100%;
-			}
-			.hero-image img {
-				display: block;
-				margin: 0 auto;
-				border-radius: 12px;
-				box-shadow: var(--box-shadow);
-			}
-			.title {
-				width: 720px;
-				max-width: calc(100% - 2em);
-				margin: 0 auto 1em;
-				padding: 1em;
-				text-align: center;
-				line-height: 1;
-			}
-			.title h1 {
-				margin: 0 0 0.5em 0;
-			}
-			.date {
-				margin-bottom: 0.5em;
-				color: rgb(var(--gray));
-			}
-			.last-updated-on {
-				font-style: italic;
-			}
-		</style>
 	</head>
 
 	<body>
 		<Header />
 		<main>
-			<div class="hero-image">
-				{heroImage && <Image width={1020} height={510} src={heroImage} alt="" />}
-			</div>
-			<header class="title">
-				<div class="date">
+			{
+				heroImage && (
+					<div class="mb-6">
+						<Image
+							width={1020}
+							height={510}
+							src={heroImage}
+							alt=""
+							class="mx-auto rounded-xl shadow-sm"
+						/>
+					</div>
+				)
+			}
+			<header class="mb-8 border-b border-slate-200 pb-6 text-center">
+				<div class="mb-2 text-sm text-slate-500">
 					<FormattedDate date={pubDate} />
 					{
 						updatedDate && (
-							<div class="last-updated-on">
-								Last updated on <FormattedDate date={updatedDate} />
-							</div>
+							<span class="italic">
+								{' '}
+								· 更新于 <FormattedDate date={updatedDate} />
+							</span>
 						)
 					}
 				</div>
-				<h1>{title}</h1>
-				<hr />
+				<h1 class="text-[1.625rem] font-semibold leading-snug tracking-tight text-gray-900">
+					{title}
+				</h1>
 			</header>
-			<article class="prose prose-lg dark:prose-invert mx-auto">
+			<article class:list={[proseClass, 'mx-auto']}>
 				<slot />
 			</article>
 		</main>
