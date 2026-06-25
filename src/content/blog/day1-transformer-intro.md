@@ -38,41 +38,57 @@ pubDate: 'Jun 24 2026'
 
 ## Part 1：Transformer 架构概览
 
-原始 `Transformer` 由 `Encoder` 和 `Decoder` 两部分组成，常用于 seq2seq 任务（如机器翻译）。现代大模型往往只保留其中一半，演化为三种主流形态。
+原始 `Transformer` 由 `Encoder` 和 `Decoder` 堆叠组成，常用于 seq2seq 任务（如机器翻译）。后来的演化不是简单「砍掉一半」——`GPT` 这类 Decoder-only 模型去掉了 `Cross-Attention`，变成**只有因果 Self-Attn + FFN 的独立 stack**，与原始 Decoder 结构并不相同。
 
 ### 整体结构
 
 <figure class="arch-fig">
-<div class="arch-flow">
-<span class="arch-box-muted">输入序列</span>
-<span class="arch-arrow">→</span>
-<span class="arch-box">Encoder × N</span>
-<span class="arch-arrow">→</span>
-<span class="arch-box-muted">编码表示</span>
-<span class="arch-arrow">→</span>
-<span class="arch-box">Decoder × N</span>
-<span class="arch-arrow">→</span>
-<span class="arch-box-muted">输出序列</span>
+<div class="arch-stack">
+  <span class="arch-label">输入序列（源语言）</span>
+  <span class="arch-arrow-down">↓</span>
+  <div class="arch-module arch-encoder">
+    <strong>Encoder × N 层</strong><br>Self-Attn → FFN（每层重复）
+  </div>
+  <span class="arch-arrow-down">↓ 编码表示（供 Cross-Attn 的 K, V）</span>
+  <div class="arch-merge">
+    <div class="arch-merge-input">已生成序列<br><small>（训练时右移一位）</small></div>
+    <span class="arch-arrow-side">＋</span>
+    <div class="arch-merge-input">编码表示<br><small>（来自 Encoder）</small></div>
+  </div>
+  <span class="arch-arrow-down">↓ 两路汇入</span>
+  <div class="arch-module arch-decoder">
+    <strong>Decoder × N 层</strong><br>Masked Self-Attn → Cross-Attn → FFN
+  </div>
+  <span class="arch-arrow-down">↓</span>
+  <span class="arch-label">输出序列（目标语言）</span>
 </div>
-<figcaption>Transformer 整体数据流：Encoder 双向理解输入，Decoder 自回归生成输出</figcaption>
+<figcaption>Decoder 每层同时接收两路输入：自身序列经 Masked Self-Attn，源信息经 Cross-Attn 从 Encoder 注入</figcaption>
 </figure>
 
-- `Encoder`：读入源序列，输出每个位置的上下文表示
+- `Encoder`：双向读入源序列，输出每个位置的上下文表示
 - `Decoder`：以编码表示为条件，自回归地生成目标序列
 
 ### Block 里有什么？
 
+每个子层都是 **Attention（或 FFN）→ 残差 → LayerNorm** 的节奏。Attention 管 token 间**混合**，FFN 管每个位置单独**加工**——这是 Block 的核心分工。
+
+**残差连接**：把子层输入直接加到输出上（$x + \text{Sublayer}(x)$）。堆 $N$ 层时，梯度可以沿捷径回传，否则深层很难训动——**能堆深的前提**。
+
+**LayerNorm**：归一化每层的输入分布，稳定训练。原论文用 **Post-LN**（子层算完再 Norm）；现代模型（`GPT`、`LLaMA`）几乎全改 **Pre-LN**（先 Norm 再进子层），因为 Post-LN 在深层容易训练不稳、需要较长 warmup。
+
+**FFN**：对每个位置独立做「升维 → 非线性 → 降维」（中间维度通常是 $4\times$）。Attention 做完 token 间信息交换后，FFN 负责特征变换——而且 **FFN 占了 Transformer 参数量的大头**（远多于 Attention）。
+
 **Encoder Layer**（每层）：
 
 1. `Multi-Head Self-Attention` — 序列内部全局交互
-2. `Feed-Forward Network`（`FFN`）— 逐位置非线性变换
-3. 残差连接 + `Layer Norm`
+2. `FFN`
+3. 残差 + `LayerNorm`（现代实现多为 Pre-LN）
 
 **Decoder Layer**（每层）多一个子层：
 
-1. `Masked Self-Attention` — 因果掩码，只看当前及之前
+1. `Masked Self-Attention` — 因果掩码
 2. `Cross-Attention` — Q 来自 Decoder，K/V 来自 Encoder
-3. `FFN` + 残差 + `Layer Norm`
+3. `FFN` + 残差 + `LayerNorm`
 
 ### 三种 Attention
 
@@ -83,16 +99,24 @@ pubDate: 'Jun 24 2026'
 | Cross-Attn | Decoder | Encoder | 无 | 源信息注入生成 |
 
 <aside class="callout">
+<p><strong>因果掩码为什么存在？</strong>训练时整句目标序列并行喂入，但推理时只能从左到右逐个生成。掩码强制位置 $t$ 不能「偷看」$t+1$ 之后的答案——这样<strong>并行训练</strong>和<strong>自回归推理</strong>共用同一套权重，不会训练/测试行为不一致。这是理解 Decoder（以及 Decoder-only）的前置。</p>
+</aside>
+
+<aside class="callout">
 <p><strong>直觉记忆</strong>：Encoder Self-Attn「读懂输入」→ Decoder Self-Attn「连贯往下写」→ Cross-Attn「写的时候回头看原文」。</p>
 </aside>
 
 ### 三种架构的经典运用
 
-| 架构 | 代表模型 | 典型任务 |
-|---|---|---|
-| Encoder-only | `BERT` | 分类、NER、检索 |
-| Decoder-only | `GPT` 系列 | 生成、对话、代码 |
-| Encoder-Decoder | `T5`、`BART` | 翻译、摘要 |
+三者区别的本质在两个维度：**用什么注意力掩码** + **用什么预训练目标**。
+
+| 架构 | 注意力掩码 | 预训练目标 | 代表模型 | 典型任务 |
+|---|---|---|---|---|
+| Encoder-only | 双向（无掩码） | MLM | `BERT` | 分类、NER、检索 |
+| Decoder-only | 因果（单向） | Next-token | `GPT` 系列 | 生成、对话、代码 |
+| Encoder-Decoder | Enc 双向 + Dec 因果 | Span corruption 等 | `T5`、`BART` | 翻译、摘要 |
+
+换掩码 + 换目标 = 换架构。这也是为什么 `GPT` 能从同一个因果 stack 统一做生成，而 `BERT` 只能做理解、需要额外头才能生成。
 
 ## Part 2：为什么 Decoder-only 成为主流？
 
