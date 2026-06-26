@@ -377,6 +377,15 @@ img {
 	margin: 0.35rem 0 0;
 }
 
+.compare-col ul {
+	margin: 0.45rem 0 0;
+	padding-left: 1.05rem;
+}
+
+.compare-col li {
+	margin: 0.2rem 0;
+}
+
 .compare-col.is-workflow {
 	border-top: 3px solid #94a3b8;
 }
@@ -485,4 +494,158 @@ img {
 	clip: rect(1px, 1px, 1px, 1px);
 	clip-path: inset(50%);
 	white-space: nowrap;
+}
+
+/* ===== Fix: code blocks must not inherit inline-code chip styling ===== */
+/* The prose-code:* utilities (teal chip) also hit <code> inside <pre>,
+   which drew a separate background box per wrapped line. Reset it here. */
+.prose pre code,
+.prose pre code span {
+	background: transparent !important;
+	padding: 0 !important;
+	border-radius: 0 !important;
+	color: inherit;
+	font-size: inherit;
+}
+
+.prose pre {
+	padding: 1rem 1.15rem;
+	border-radius: 10px;
+	line-height: 1.6;
+	overflow-x: auto;
+}
+
+/* ===== T / A / O semantic pills ===== */
+.tao {
+	display: inline-flex;
+	align-items: center;
+	padding: 0.1rem 0.6rem;
+	border-radius: 999px;
+	font-size: 0.72rem;
+	font-weight: 700;
+	letter-spacing: 0.02em;
+	white-space: nowrap;
+}
+.tao-t {
+	background: #eef2ff;
+	color: #4338ca;
+}
+.tao-a {
+	background: var(--accent-light);
+	color: var(--accent-dark);
+}
+.tao-o {
+	background: #fffbeb;
+	color: #b45309;
+}
+.tao-f {
+	background: #f0fdf4;
+	color: #15803d;
+}
+
+/* ===== Vertical reasoning trace (Thought / Action / Observation timeline) ===== */
+.trace {
+	display: grid;
+	gap: 0.85rem;
+	margin: 1.5rem 0;
+	padding: 1.15rem 1.15rem 1.15rem 1.4rem;
+	border-radius: 12px;
+	background: linear-gradient(135deg, #f8fafc 0%, #fff 70%);
+	border: 1px solid rgb(var(--gray-light));
+}
+.trace-row {
+	position: relative;
+	display: grid;
+	gap: 0.3rem;
+	padding-left: 1rem;
+	border-left: 2px solid #e2e8f0;
+}
+.trace-row::before {
+	content: '';
+	position: absolute;
+	left: -5px;
+	top: 0.35rem;
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: #cbd5e1;
+}
+.trace-row.is-finish::before {
+	background: #16a34a;
+}
+.trace-row p {
+	margin: 0;
+	font-size: 0.875rem;
+	line-height: 1.6;
+	color: rgb(var(--gray-dark));
+}
+.trace-row code {
+	font-size: 0.82em;
+}
+
+/* ===== Stacked prompt-structure bands ===== */
+.stack {
+	display: grid;
+	gap: 0.5rem;
+	margin: 1.25rem 0;
+}
+.stack-band {
+	padding: 0.7rem 1rem;
+	border-radius: 9px;
+	border: 1px solid;
+	font-size: 0.875rem;
+	line-height: 1.6;
+}
+.stack-band b {
+	display: block;
+	margin-bottom: 0.15rem;
+	font-size: 0.78rem;
+	letter-spacing: 0.03em;
+	text-transform: uppercase;
+}
+.stack-1 {
+	background: #eef2ff;
+	border-color: #c7d2fe;
+	color: #3730a3;
+}
+.stack-2 {
+	background: var(--accent-light);
+	border-color: #99f6e4;
+	color: #115e59;
+}
+.stack-3 {
+	background: #fffbeb;
+	border-color: #fde68a;
+	color: #92400e;
+}
+
+/* ===== Mini card grid ===== */
+.gridcards {
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	gap: 0.7rem;
+	margin: 1.25rem 0;
+}
+.gridcard {
+	padding: 0.8rem 0.95rem;
+	border-radius: 10px;
+	background: #fff;
+	border: 1px solid rgb(var(--gray-light));
+	font-size: 0.875rem;
+	line-height: 1.6;
+	color: rgb(var(--gray-dark));
+}
+.gridcard b {
+	color: rgb(var(--black));
+	font-weight: 600;
+}
+.gridcard .gc-ico {
+	font-size: 1.05rem;
+	margin-right: 0.35rem;
+}
+
+@media (max-width: 640px) {
+	.gridcards {
+		grid-template-columns: 1fr;
+	}
 }
