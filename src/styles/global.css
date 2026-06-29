@@ -86,6 +86,37 @@ img {
 	color: rgb(var(--black));
 }
 
+/* Pitfall / warning box (amber) — contrast to the teal positive callout */
+.warn {
+	display: flex;
+	gap: 0.6rem;
+	margin: 1rem 0;
+	padding: 0.7rem 0.95rem;
+	border-left: 3px solid #f59e0b;
+	border-radius: 0 6px 6px 0;
+	background: #fffbeb;
+	font-size: 0.9rem;
+	line-height: 1.6;
+	color: #713f12;
+}
+
+.warn::before {
+	content: '⚠';
+	flex-shrink: 0;
+	color: #d97706;
+	font-size: 1rem;
+	line-height: 1.5;
+}
+
+.warn p {
+	margin: 0;
+}
+
+.warn strong {
+	font-weight: 600;
+	color: #92400e;
+}
+
 /* Architecture diagram block */
 .arch-fig {
 	margin: 1.5rem 0;
