@@ -1,6 +1,7 @@
 ---
 title: 'Reflection'
 description: '从评估闭环出发，理解 Reflection 与 Self-Critique 如何让 Agent 从失败中长记性——Reflexion、Self-Refine、CRITIC 等范式的核心思路。'
+series: 'agent'
 pubDate: 'Jun 30 2026'
 ---
 

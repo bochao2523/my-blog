@@ -1,6 +1,7 @@
 ---
 title: 'Tool Use'
 description: 'Agent 中关于 Tool Use 的完整知识体系——从工具定义、调用协议到编排策略与工程实践。'
+series: 'agent'
 pubDate: 'Jul 1 2026'
 ---
 

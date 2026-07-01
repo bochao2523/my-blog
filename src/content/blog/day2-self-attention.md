@@ -1,6 +1,7 @@
 ---
 title: 'Self-Attention'
 description: '从 Query、Key、Value 出发，理解 Self-Attention 如何让序列中的每个位置动态聚合上下文信息。'
+series: 'llm-fundamentals'
 pubDate: 'Jun 25 2026'
 ---
 

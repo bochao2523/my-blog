@@ -5,11 +5,17 @@ import Footer from '../../components/Footer.astro';
 import FormattedDate from '../../components/FormattedDate.astro';
 import Header from '../../components/Header.astro';
 import { SITE_DESCRIPTION, SITE_TITLE } from '../../consts';
+import { SERIES_CONFIG, SERIES_ORDER } from '../../consts/series';
+import { getDayNumber, sortByDay } from '../../utils/posts';
 import { withBase } from '../../utils/paths';
 
-const posts = (await getCollection('blog')).sort(
-	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
-);
+const allPosts = await getCollection('blog');
+
+const seriesGroups = SERIES_ORDER.map((key) => ({
+	key,
+	config: SERIES_CONFIG[key],
+	posts: sortByDay(allPosts.filter((p) => p.data.series === key)),
+}));
 ---
 
 <!doctype html>
@@ -29,6 +35,38 @@ const posts = (await getCollection('blog')).sort(
 				color: rgb(var(--gray));
 				margin: 0;
 			}
+			.series-block {
+				margin-bottom: 2.5rem;
+			}
+			.series-block:last-child {
+				margin-bottom: 0;
+			}
+			.series-label {
+				display: flex;
+				align-items: baseline;
+				justify-content: space-between;
+				margin-bottom: 0.75rem;
+				padding-bottom: 0.5rem;
+				border-bottom: 2px solid rgb(var(--gray-light));
+			}
+			.series-block.is-llm .series-label {
+				border-bottom-color: #99f6e4;
+			}
+			.series-block.is-agent .series-label {
+				border-bottom-color: #c7d2fe;
+			}
+			.series-label h2 {
+				margin: 0;
+				font-size: 1.15rem;
+				font-weight: 700;
+			}
+			.series-block.is-agent .series-label h2 {
+				color: #4338ca;
+			}
+			.series-label span {
+				font-size: 0.8rem;
+				color: rgb(var(--gray));
+			}
 			ul {
 				list-style: none;
 				margin: 0;
@@ -36,36 +74,53 @@ const posts = (await getCollection('blog')).sort(
 			}
 			ul li {
 				border-bottom: 1px solid rgb(var(--gray-light));
-				padding: 1.2em 0;
+				padding: 1rem 0;
 			}
 			ul li:last-child {
 				border-bottom: none;
 			}
 			ul li a {
-				display: flex;
-				justify-content: space-between;
+				display: grid;
+				grid-template-columns: auto 1fr auto;
+				gap: 0.75rem 1rem;
 				align-items: baseline;
-				gap: 1em;
 				text-decoration: none;
 				color: rgb(var(--black));
+			}
+			.day-num {
+				font-size: 0.75rem;
+				font-weight: 700;
+				color: rgb(var(--gray));
+				min-width: 3rem;
+			}
+			.title {
+				margin: 0;
+				font-size: 1.05em;
+				transition: color 0.2s ease;
 			}
 			ul li a:hover .title {
 				color: rgb(var(--accent));
 			}
-			.title {
-				margin: 0;
-				font-size: 1.1em;
-				transition: color 0.2s ease;
+			.series-block.is-agent ul li a:hover .title {
+				color: #4338ca;
 			}
 			.date {
 				margin: 0;
 				flex-shrink: 0;
 				color: rgb(var(--gray));
-				font-size: 0.9em;
+				font-size: 0.85em;
 			}
 			.empty {
 				color: rgb(var(--gray));
 				font-style: italic;
+			}
+			@media (max-width: 640px) {
+				ul li a {
+					grid-template-columns: auto 1fr;
+				}
+				.date {
+					grid-column: 2;
+				}
 			}
 		</style>
 	</head>
@@ -74,28 +129,37 @@ const posts = (await getCollection('blog')).sort(
 		<main>
 			<div class="page-header">
 				<h1>全部文章</h1>
-				<p>共 {posts.length} / 100 篇</p>
+				<p>共 {allPosts.length} / 100 篇，按系列与 Day 编号排列</p>
 			</div>
-			<section>
-				{
-					posts.length > 0 ? (
-						<ul>
-							{posts.map((post) => (
-								<li>
-									<a href={withBase(`/blog/${post.id}/`)}>
-										<h4 class="title">{post.data.title}</h4>
-										<p class="date">
-											<FormattedDate date={post.data.pubDate} />
-										</p>
-									</a>
-								</li>
-							))}
-						</ul>
-					) : (
-						<p class="empty">暂无文章，敬请期待。</p>
-					)
-				}
-			</section>
+			{
+				seriesGroups.map(({ key, config, posts }) => (
+					<section class={`series-block ${key === 'llm-fundamentals' ? 'is-llm' : 'is-agent'}`}>
+						<div class="series-label">
+							<h2>{config.title}</h2>
+							<span>{posts.length} 篇 · {config.dayRange}</span>
+						</div>
+						{
+							posts.length > 0 ? (
+								<ul>
+									{posts.map((post) => (
+										<li>
+											<a href={withBase(`/blog/${post.id}/`)}>
+												<span class="day-num">Day {getDayNumber(post.id)}</span>
+												<h4 class="title">{post.data.title}</h4>
+												<p class="date">
+													<FormattedDate date={post.data.pubDate} />
+												</p>
+											</a>
+										</li>
+									))}
+								</ul>
+							) : (
+								<p class="empty">该系列暂无文章。</p>
+							)
+						}
+					</section>
+				))
+			}
 		</main>
 		<Footer />
 	</body>

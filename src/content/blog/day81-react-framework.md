@@ -1,6 +1,7 @@
 ---
 title: 'ReAct 框架'
 description: '从 Thought-Action-Observation 循环出发，理解 ReAct 如何将推理与工具调用交织成可解释的 Agent 决策过程。'
+series: 'agent'
 pubDate: 'Jun 26 2026'
 ---
 

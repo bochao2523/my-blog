@@ -1,6 +1,7 @@
 ---
 title: 'Memory'
 description: 'Agent 中关于模型的记忆机制——从上下文窗口、短期记忆到长期记忆与检索增强的完整知识体系。'
+series: 'agent'
 pubDate: 'Jul 2 2026'
 ---
 

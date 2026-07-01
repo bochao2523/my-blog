@@ -1,6 +1,7 @@
 ---
 title: '什么是 Agent'
 description: '从概念定义到核心能力，理解 Agent 为何成为大模型应用的关键范式。'
+series: 'agent'
 pubDate: 'Jun 25 2026'
 ---
 

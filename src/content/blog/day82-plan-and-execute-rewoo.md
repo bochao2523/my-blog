@@ -1,6 +1,7 @@
 ---
 title: 'Plan and Execute & REWOO'
 description: '从 Planner-Executor 分离出发，理解 Plan-and-Execute 如何将复杂任务拆解为可执行步骤，以及 REWOO 如何通过「无观察推理」降低 Agent 的 token 开销。'
+series: 'agent'
 pubDate: 'Jun 29 2026'
 ---
 
